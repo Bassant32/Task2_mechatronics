@@ -56,6 +56,7 @@ def depth_thread():
         try:
             pil_image = PILImage.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             inputs = processor(images=pil_image, return_tensors="pt")
+            inputs = {k: v.to('cuda') for k, v in inputs.items()}  # move inputs to GPU
 
             with torch.no_grad():
                 outputs = model(**inputs)
@@ -90,6 +91,7 @@ def main():
     model = AutoModelForDepthEstimation.from_pretrained(depth_model_path)
     model.eval()
     torch.set_num_threads(4)
+    model = model.to('cuda')  # move model to GPU
 
     pub_depth = rospy.Publisher('/object_depth', Image, queue_size=1)
     pub_distance = rospy.Publisher('/object_distance', Float32, queue_size=1)
